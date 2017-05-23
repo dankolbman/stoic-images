@@ -1,0 +1,17 @@
+language: python
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database stoic_test;' -U postgres
+python:
+  - "3.5"
+cache: pip
+install:
+  - "pip install -r dev-requirements.txt"
+  - "pip install -r requirements.txt"
+  - "python setup.py develop"
+script: 
+  - py.test --pep8 images 
+  - py.test -v --cov=images --cov-report term-missing --pep8 test
+after_success:
+  coveralls
