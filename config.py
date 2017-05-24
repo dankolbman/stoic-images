@@ -17,6 +17,7 @@ class Config:
     IMAGE_UPLOAD_DIR = os.environ.get('IMAGE_UPLOAD_DIR',
                                     os.path.join(basedir, 'image_uploads'))
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
+    ALLOWED_IMAGES = ['jpg', 'jpeg', 'png', 'gif' ]
 
     @staticmethod
     def init_app(app):
@@ -35,6 +36,7 @@ class TestingConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'postgres:///stoic_test'
     CELERY_ALWAYS_EAGER = True
+    SERVER_NAME = 'localhost'
 
 
 class ProductionConfig(Config):
