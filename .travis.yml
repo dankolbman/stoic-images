@@ -1,6 +1,7 @@
 language: python
-services:
-  - postgresql
+dist: trusty
+addons:
+  postgresql: "9.6"
 before_script:
   - psql -c 'create database stoic_test;' -U postgres
 python:
