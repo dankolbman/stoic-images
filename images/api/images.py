@@ -1,5 +1,6 @@
 import os
 import uuid
+import time
 from flask import request, current_app
 from flask_restplus import Api, Resource, Namespace, fields
 from flask_jwt import _jwt_required, JWTError, current_identity
@@ -48,7 +49,8 @@ class NewImage(Resource):
         if ext not in current_app.config['ALLOWED_IMAGES']:
             return {'status': 400, 'message': 'invalid file type'}, 400
 
-        iid = str(uuid.uuid5(uuid.NAMESPACE_URL, image.filename))
+        iid = str(uuid.uuid5(uuid.NAMESPACE_URL,
+                             image.filename + str(time.time())))
         filepath = '/'.join([username,
                              tripid,
                              iid + '.' + ext])
