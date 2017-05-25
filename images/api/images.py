@@ -67,13 +67,3 @@ class NewImage(Resource):
         return {'status': 201,
                 'message': 'uploaded image for processing',
                 'task_id': 1}, 201
-
-
-@api.route('/<path:url>')
-class ImageByURL(Resource):
-    @api.doc(responses={404: 'no image found', 200: 'image found'})
-    def get(self, url):
-        """
-        Return an image by URL
-        """
-        return {'message': 'image found'}, 200
