@@ -57,7 +57,7 @@ class NewImage(Resource):
 
         path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'],
                             filepath)
-        os.makedirs('/'.join(path.split('/')[:-1]))
+        os.makedirs('/'.join(path.split('/')[:-1]), exist_ok=True)
         image.save(path)
 
         img = Image(username=username, tripid=tripid, basepath=filepath)
