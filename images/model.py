@@ -13,6 +13,8 @@ class Image(db.Model):
     tripid = db.Column(db.Integer, index=True)
     basepath = db.Column(db.String(256))
     paths = db.Column(db.JSON(), default={})
+    lon = db.Column(db.Float)
+    lat = db.Column(db.Float)
 
     def __init__(self, **kwargs):
         super(Image, self).__init__(**kwargs)
