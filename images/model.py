@@ -18,6 +18,10 @@ class Image(db.Model):
     created_at = db.Column(db.DateTime(), default=datetime.utcnow())
     lon = db.Column(db.Float)
     lat = db.Column(db.Float)
+    width = db.Column(db.Integer)
+    height = db.Column(db.Integer)
+    location = db.Column(db.String(128))
+    caption = db.Column(db.String(512))
 
     def __init__(self, **kwargs):
         if 'created_at' in kwargs and type(kwargs['created_at']) is str:
@@ -33,5 +37,9 @@ class Image(db.Model):
                 "username": self.username,
                 "created_at": self.created_at.isoformat(),
                 "trip_id": self.trip_id,
+                "location": self.location,
+                "caption": self.caption,
+                "width": self.caption,
+                "height": self.caption,
                 "basepath": self.basepath,
                 "paths": self.paths}
