@@ -1,7 +1,9 @@
 import os
 import uuid
 import time
-from flask import request, current_app
+from datetime import datetime
+from dateutil import parser
+from flask import request, current_app, abort
 from flask_restplus import Api, Resource, Namespace, fields
 from flask_jwt import _jwt_required, JWTError, current_identity
 
@@ -10,6 +12,23 @@ from ..model import Image
 
 
 api = Namespace('image', description='Image service')
+
+
+image_model = api.model('Image', {
+        'trip_id': fields.Integer(description='Trip id'),
+        'username': fields.String(description='username'),
+        'basepath': fields.String(description='Location of the file'),
+        'paths': fields.String(description='Image paths'),
+        'created_at': fields.DateTime(description='Time of creation'),
+        'lon': fields.Float(description='Longitude'),
+        'lat': fields.Float(description='Latitude'),
+    })
+
+
+paginated = api.model('Response', {
+        'images': fields.List(fields.Nested(image_model)),
+        'total': fields.Integer(description='number of results')
+    })
 
 
 def belongs_to(username):
@@ -30,10 +49,11 @@ class Status(Resource):
                 'version': '1.0'}, 200
 
 
-@api.route('/<string:username>/<string:tripid>')
-class NewImage(Resource):
+@api.route('/<string:username>/<string:trip_id>')
+@api.doc(params={'username': 'username', 'trip_id': 'numeric trip id'})
+class ImageByTrip(Resource):
     @api.doc(responses={400: 'missing fields', 201: 'image created'})
-    def post(self, username, tripid):
+    def post(self, username, trip_id):
         """
         Upload an image
         """
@@ -52,7 +72,7 @@ class NewImage(Resource):
         iid = str(uuid.uuid5(uuid.NAMESPACE_URL,
                              image.filename + str(time.time())))
         filepath = '/'.join([username,
-                             tripid,
+                             trip_id,
                              iid + '.' + ext])
 
         path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'],
@@ -60,10 +80,55 @@ class NewImage(Resource):
         os.makedirs('/'.join(path.split('/')[:-1]), exist_ok=True)
         image.save(path)
 
-        img = Image(username=username, tripid=tripid, basepath=filepath)
+        img = Image(username=username, trip_id=trip_id, basepath=filepath)
         db.session.add(img)
         db.session.commit()
 
-        return {'status': 201,
-                'message': 'uploaded image for processing',
+        return {'message': 'uploaded image for processing',
+                'image': img.to_json(),
                 'task_id': 1}, 201
+
+    @api.doc(responses={200: 'found images', 404: 'no images found'})
+    @api.marshal_with(paginated)
+    def get(self, username, trip_id):
+        """
+        List images for a given trip
+        """
+        epoch = datetime.fromtimestamp(0).isoformat()
+        start = request.args.get('start', epoch, type=str)
+        start_dt = parser.parse(start)
+        size = min(request.args.get('size', 10, type=int), 1000)
+
+        q = (Image.query.filter_by(username=username)
+                        .filter_by(trip_id=trip_id)
+                        .filter(Image.created_at > start_dt)
+                        .order_by(Image.created_at))
+        total = q.count()
+        if total == 0:
+            abort(404, 'no images found for this user and trip')
+        images = q.limit(size)
+        return {'images': images, 'total': total}, 200
+
+
+@api.route('/<string:username>')
+@api.doc(params={'username': 'username'})
+class ImageByUser(Resource):
+    @api.doc(responses={200: 'found images', 404: 'no images found'})
+    @api.marshal_with(paginated)
+    def get(self, username):
+        """
+        List images for a given user
+        """
+        epoch = datetime.fromtimestamp(0).isoformat()
+        start = request.args.get('start', epoch, type=str)
+        start_dt = parser.parse(start)
+        size = min(request.args.get('size', 10, type=int), 1000)
+
+        q = (Image.query.filter_by(username=username)
+                        .filter(Image.created_at > start_dt)
+                        .order_by(Image.created_at))
+        total = q.count()
+        if total == 0:
+            abort(404, 'no images found for this user')
+        images = q.limit(size)
+        return {'images': images, 'total': total}, 200

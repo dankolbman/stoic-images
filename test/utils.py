@@ -4,6 +4,7 @@ import json
 import jwt
 import unittest
 from images import create_app, db
+from flask import url_for
 
 
 class FlaskTestCase(unittest.TestCase):
@@ -40,3 +41,16 @@ class FlaskTestCase(unittest.TestCase):
                               'secret', algorithm='HS256')
             headers['Authorization'] = 'JWT ' + auth.decode('utf-8')
         return headers
+
+    def _post_images(self, n=1, username='Dan', trip_id=1):
+        """ posts a bunch of images """
+        for i in range(n):
+            data = dict(file=(open('test/images/128_128.gif', 'rb'),
+                              "BlueMarble.jpeg"))
+            resp = self.client.post(
+                    url_for('image_image_by_trip',
+                            username=username,
+                            trip_id=trip_id),
+                    headers=self._api_headers(username=username),
+                    content_type='multipart/form-data',
+                    data=data)
