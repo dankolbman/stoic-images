@@ -22,6 +22,10 @@ image_model = api.model('Image', {
         'created_at': fields.DateTime(description='Time of creation'),
         'lon': fields.Float(description='Longitude'),
         'lat': fields.Float(description='Latitude'),
+        'caption': fields.String(description='Caption'),
+        'location': fields.String(description='Geocoded location'),
+        'width': fields.Float(description='Width in pixels'),
+        'height': fields.Float(description='Height in pixels'),
     })
 
 
