@@ -25,7 +25,7 @@ class ImageTestCase(FlaskTestCase):
         data = dict(file=(open('test/images/BlueMarble.jpeg', 'rb'),
                           "BlueMarble.jpeg"))
         response = self.client.post(
-                    url_for('image_new_image', username='Dan', tripid=1),
+                    url_for('image_image_by_trip', username='Dan', trip_id=1),
                     headers=self._api_headers(username='Dan'),
                     content_type='multipart/form-data',
                     data=data),
@@ -37,6 +37,46 @@ class ImageTestCase(FlaskTestCase):
         self.assertEqual(Image.query.count(), 1)
         self.assertTrue(os.path.isdir('image_uploads/Dan/1'))
         self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 1)
+        response = self.client.get(
+                    url_for('image_image_by_trip', username='Dan', trip_id=1))
+        json_response = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json_response['total'], 1)
+        self.assertEqual(len(json_response['images']), 1)
+
+    def test_many(self):
+        """
+        Test serveral images from different trips and users
+        """
+        self._post_images(n=1, username='dan', trip_id=1)
+        self._post_images(n=2, username='dan', trip_id=2)
+        self._post_images(n=5, username='bob', trip_id=4)
+        self._post_images(n=3, username='dan', trip_id=3)
+        self._post_images(n=7, username='bob', trip_id=5)
+
+        response = self.client.get(
+                    url_for('image_image_by_trip', username='anon', trip_id=1))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(
+                    url_for('image_image_by_user', username='anon'))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(
+                    url_for('image_image_by_trip', username='dan', trip_id=2))
+        jsonr = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(jsonr['total'], 2)
+        response = self.client.get(
+                    url_for('image_image_by_trip', username='bob', trip_id=5))
+        jsonr = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(jsonr['total'], 7)
+        response = self.client.get(
+                    url_for('image_image_by_user', username='dan'))
+        jsonr = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(jsonr['total'], 6)
+        response = self.client.get(
+                    url_for('image_image_by_user', username='bob'))
+        jsonr = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(jsonr['total'], 12)
+        self.assertEqual(len(jsonr['images']), 10)
 
     def test_duplicate(self):
         """
@@ -45,14 +85,14 @@ class ImageTestCase(FlaskTestCase):
         data = dict(file=(open('test/images/BlueMarble.jpeg', 'rb'),
                           "BlueMarble.jpeg"))
         response = self.client.post(
-                    url_for('image_new_image', username='Dan', tripid=1),
+                    url_for('image_image_by_trip', username='Dan', trip_id=1),
                     headers=self._api_headers(username='Dan'),
                     content_type='multipart/form-data',
                     data=data)
         data = dict(file=(open('test/images/BlueMarble.jpeg', 'rb'),
                           "BlueMarble.jpeg"))
         response = self.client.post(
-                    url_for('image_new_image', username='Dan', tripid=1),
+                    url_for('image_image_by_trip', username='Dan', trip_id=1),
                     headers=self._api_headers(username='Dan'),
                     content_type='multipart/form-data',
                     data=data),
@@ -68,7 +108,7 @@ class ImageTestCase(FlaskTestCase):
         data = dict(file=(open('test/images/BlueMarble.jpeg', 'rb'),
                           "BlueMarble.jpeg"))
         response = self.client.post(
-                    url_for('image_new_image', username='Dan', tripid=1),
+                    url_for('image_image_by_trip', username='Dan', trip_id=1),
                     headers=self._api_headers(username='Dannn'),
                     content_type='multipart/form-data',
                     data=data),
@@ -79,7 +119,7 @@ class ImageTestCase(FlaskTestCase):
         data = dict(file=(open('test/images/BlueMarble.jpeg', 'rb'),
                           "BlueMarble.jpeg"))
         response = self.client.post(
-                    url_for('image_new_image', username='Dan', tripid=1),
+                    url_for('image_image_by_trip', username='Dan', trip_id=1),
                     headers=self._api_headers(),
                     content_type='multipart/form-data',
                     data=data),
@@ -94,7 +134,7 @@ class ImageTestCase(FlaskTestCase):
         data = dict(file=(open('test/utils.py', 'rb'),
                           "utils.py"))
         response = self.client.post(
-                    url_for('image_new_image', username='Dan', tripid=1),
+                    url_for('image_image_by_trip', username='Dan', trip_id=1),
                     headers=self._api_headers(username='Dan'),
                     content_type='multipart/form-data',
                     data=data),
@@ -108,7 +148,7 @@ class ImageTestCase(FlaskTestCase):
         Test response no file
         """
         response = self.client.post(
-                    url_for('image_new_image', username='Dan', tripid=1),
+                    url_for('image_image_by_trip', username='Dan', trip_id=1),
                     headers=self._api_headers(username='Dan'),
                     content_type='multipart/form-data')
         self.assertEqual(response.status_code, 400)
