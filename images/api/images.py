@@ -91,8 +91,7 @@ class ImageByTrip(Resource):
         img_js = img.to_json()
 
         from ..tasks.metadata import extract
-        #task_id = str(extract.delay(img.id))
-        task_id = str(extract(img.id))
+        task_id = str(extract.delay(img.id))
 
         return {'message': 'uploaded image for processing',
                 'image': img_js,

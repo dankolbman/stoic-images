@@ -10,6 +10,7 @@ from ..model import Image
 from images import create_celery_app
 from .. import db
 
+
 def parse_gps(exif):
     """
     Converts gps exif tags to decimal degrees lon, lat
@@ -32,15 +33,15 @@ def parse_gps(exif):
 def interp_point(username, trip_id, dt):
     """ Will attempt to resolve a point from a datetime using geo service """
     url = ('{}/interp/{}/{}?time={}'
-            .format(current_app.config['GEO_URL'],
-                    username,
-                    trip_id,
-                    dt.isoformat()))
+           .format(current_app.config['GEO_URL'],
+                   username,
+                   trip_id,
+                   dt.isoformat()))
     resp = requests.get(url)
     if resp.status_code == 400:
         return None
 
-    js_resp = json.loads(response.data.decode('utf-8'))
+    js_resp = resp.json()
     return js_resp['point']['geometry']['coordinates']
 
 
@@ -50,17 +51,15 @@ def extract(iid):
     Extracts metadata from an image file
     """
     m = Image.query.get(iid)
-    print(m.to_json())
     path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'], m.basepath)
 
     img = PIL.Image.open(path)
     exif_data = img._getexif()
     exif = {
-	PIL.ExifTags.TAGS[k]: v
-	for k, v in img._getexif().items()
-	if k in PIL.ExifTags.TAGS
+        PIL.ExifTags.TAGS[k]: v
+        for k, v in img._getexif().items()
+        if k in PIL.ExifTags.TAGS
     }
-
     width = exif['ExifImageWidth']
     height = exif['ExifImageHeight']
     dt = m.created_at
@@ -103,4 +102,5 @@ def extract(iid):
         m.lat = lat
     db.session.add(m)
     db.session.commit()
+
     return {'image': m.to_json()}
