@@ -1,3 +1,5 @@
+import os
+from celery import Celery
 from datetime import datetime
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
