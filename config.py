@@ -15,9 +15,10 @@ class Config:
     CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND',
                                            'redis://localhost:6379/0')
     IMAGE_UPLOAD_DIR = os.environ.get('IMAGE_UPLOAD_DIR',
-                                    os.path.join(basedir, 'image_uploads'))
+                                      os.path.join(basedir, 'image_uploads'))
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
     ALLOWED_IMAGES = ['jpg', 'jpeg', 'png', 'gif' ]
+    GEO_URL = 'http://geo/'
 
     @staticmethod
     def init_app(app):
@@ -28,6 +29,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'postgres:///stoic_dev'
     CELERY_ALWAYS_EAGER = True
+    GEO_URL = 'http://localhost:8081/api/geo/'
 
 
 class TestingConfig(Config):
@@ -37,6 +39,7 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'postgres:///stoic_test'
     CELERY_ALWAYS_EAGER = True
     SERVER_NAME = 'localhost'
+    GEO_URL = 'http://localhost:8081/api/geo/'
 
 
 class ProductionConfig(Config):

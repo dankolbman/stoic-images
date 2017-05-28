@@ -38,8 +38,10 @@ class Image(db.Model):
                 "created_at": self.created_at.isoformat(),
                 "trip_id": self.trip_id,
                 "location": self.location,
+                "lon": self.lon,
+                "lat": self.lat,
                 "caption": self.caption,
-                "width": self.caption,
-                "height": self.caption,
+                "width": self.width,
+                "height": self.height,
                 "basepath": self.basepath,
                 "paths": self.paths}

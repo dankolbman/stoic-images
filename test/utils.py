@@ -42,11 +42,13 @@ class FlaskTestCase(unittest.TestCase):
             headers['Authorization'] = 'JWT ' + auth.decode('utf-8')
         return headers
 
-    def _post_images(self, n=1, username='Dan', trip_id=1):
+    def _post_images(self, n=1, username='Dan', trip_id=1, fpath=None):
         """ posts a bunch of images """
+        if fpath is None:
+            fpath = 'test/images/128_128.jpeg'
         for i in range(n):
-            data = dict(file=(open('test/images/128_128.gif', 'rb'),
-                              "BlueMarble.jpeg"))
+            data = dict(file=(open(fpath, 'rb'),
+                              os.path.basename(fpath)))
             resp = self.client.post(
                     url_for('image_image_by_trip',
                             username=username,

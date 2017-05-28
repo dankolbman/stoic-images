@@ -70,7 +70,7 @@ class ImageByTrip(Resource):
             return {'status': 400, 'message': 'no file'}, 400
         image = request.files['file']
         ext = image.filename.split('.')[-1]
-        if ext not in current_app.config['ALLOWED_IMAGES']:
+        if ext.lower() not in current_app.config['ALLOWED_IMAGES']:
             return {'status': 400, 'message': 'invalid file type'}, 400
 
         iid = str(uuid.uuid5(uuid.NAMESPACE_URL,
@@ -87,10 +87,17 @@ class ImageByTrip(Resource):
         img = Image(username=username, trip_id=trip_id, basepath=filepath)
         db.session.add(img)
         db.session.commit()
+        # doing this now allows us to lose db session scope and call the task
+        img_js = img.to_json()
+
+        from ..tasks.metadata import extract
+        from ..tasks.resize import resize
+        chain = (extract.s(img_js['id']) | resize.s())
+        task_id = str(chain())
 
         return {'message': 'uploaded image for processing',
-                'image': img.to_json(),
-                'task_id': 1}, 201
+                'image': img_js,
+                'task_id': task_id}, 201
 
     @api.doc(responses={200: 'found images', 404: 'no images found'})
     @api.marshal_with(paginated)
