@@ -37,8 +37,12 @@ def interp_point(username, trip_id, dt):
                    username,
                    trip_id,
                    dt.isoformat()))
-    resp = requests.get(url)
-    if resp.status_code == 400:
+    try:
+        resp = requests.get(url)
+    except requests.exceptions.ConnectionError:
+        return None
+
+    if resp.status_code is not 200:
         return None
 
     js_resp = resp.json()

@@ -92,7 +92,7 @@ class ImageByTrip(Resource):
 
         from ..tasks.metadata import extract
         from ..tasks.resize import resize
-        chain = (extract.s(img.id) | resize.s())
+        chain = (extract.s(img_js['id']) | resize.s())
         task_id = str(chain())
 
         return {'message': 'uploaded image for processing',
