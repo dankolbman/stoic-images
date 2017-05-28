@@ -45,30 +45,21 @@ def interp_point(username, trip_id, dt):
     return js_resp['point']['geometry']['coordinates']
 
 
-@celery.task()
-def extract(iid):
-    """
-    Extracts metadata from an image file
-    """
-    m = Image.query.get(iid)
-    path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'], m.basepath)
-
-    img = PIL.Image.open(path)
-    exif_data = img._getexif()
+def extract_exif(img):
+    """ Attempt to extact created_at, lon, and lat from the exif tags """
+    if img._getexif() is None:
+        return None, None, None
     exif = {
         PIL.ExifTags.TAGS[k]: v
         for k, v in img._getexif().items()
         if k in PIL.ExifTags.TAGS
     }
-    width = exif['ExifImageWidth']
-    height = exif['ExifImageHeight']
-    dt = m.created_at
 
     def _clean_date(exif):
         edt = exif.split(' ')
         edt[0] = edt[0].replace(':', '-')
         return ' '.join(edt)
-
+    lon, lat = None, None
     try:
         dt = parser.parse(_clean_date(exif['DateTime']))
     except ValueError as e:
@@ -88,19 +79,35 @@ def extract(iid):
     if has_fields:
         # attempt to parse
         lon, lat = parse_gps(gps)
-    if not has_fields or (lon is None and lat is None):
+
+    return dt, lon, lat
+
+
+@celery.task()
+def extract(iid):
+    """
+    Extracts metadata from an image file
+    """
+    m = Image.query.get(iid)
+    path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'], m.basepath)
+
+    img = PIL.Image.open(path)
+    width, height = img.size
+    m.width = width
+    m.height = height
+    dt, lon, lat = extract_exif(img)
+    if dt is not None:
+        m.created_at = dt
+
+    if lon is None and lat is None and dt is not None:
         # have geo try to interpolate based on the timestamp
         point = interp_point(m.username, m.trip_id, dt)
         if point is not None:
             lon, lat = point[0], point[1]
-
-    m.created_at = dt
-    m.width = width
-    m.height = height
     if lon is not None and lat is not None:
         m.lon = lon
         m.lat = lat
     db.session.add(m)
     db.session.commit()
 
-    return {'image': m.to_json()}
+    return iid

@@ -36,7 +36,7 @@ class ImageTestCase(FlaskTestCase):
         # check that the task to insert points and line ran
         self.assertEqual(Image.query.count(), 1)
         self.assertTrue(os.path.isdir('image_uploads/Dan/1'))
-        self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 1)
+        self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 7)
         response = self.client.get(
                     url_for('image_image_by_trip', username='Dan', trip_id=1))
         json_response = json.loads(response.data.decode('utf-8'))
@@ -99,7 +99,7 @@ class ImageTestCase(FlaskTestCase):
         json_response = json.loads(response[0].data.decode('utf-8'))
         self.assertEqual(response[0].status, '201 CREATED')
         self.assertTrue(os.path.isdir('image_uploads/Dan/1'))
-        self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 2)
+        self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 14)
 
     def test_no_auth(self):
         """

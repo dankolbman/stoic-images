@@ -45,7 +45,7 @@ class FlaskTestCase(unittest.TestCase):
     def _post_images(self, n=1, username='Dan', trip_id=1, fpath=None):
         """ posts a bunch of images """
         if fpath is None:
-            fpath = 'test/images/128_128.gif'
+            fpath = 'test/images/128_128.jpeg'
         for i in range(n):
             data = dict(file=(open(fpath, 'rb'),
                               os.path.basename(fpath)))

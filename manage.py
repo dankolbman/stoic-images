@@ -28,8 +28,10 @@ manager.add_command('db', MigrateCommand)
 def test(coverage=False):
     """ Run the unit tests and pep8 checks """
     from subprocess import call
-    call(["python","-m","pytest","--pep8","test"])
-    call(["python","-m","pytest","--pep8","images"])
+    env = os.environ.copy()
+    env['FLASK_CONFIG'] = 'testing'
+    call(["python","-m","pytest","--pep8","test"], env=env)
+    call(["python","-m","pytest","--pep8","images"], env=env)
 
 @manager.command
 def deploy():
