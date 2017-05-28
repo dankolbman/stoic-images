@@ -15,7 +15,7 @@ class Config:
     CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND',
                                            'redis://localhost:6379/0')
     IMAGE_UPLOAD_DIR = os.environ.get('IMAGE_UPLOAD_DIR',
-                                    os.path.join(basedir, 'image_uploads'))
+                                      os.path.join(basedir, 'image_uploads'))
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
     ALLOWED_IMAGES = ['jpg', 'jpeg', 'png', 'gif' ]
     GEO_URL = 'http://geo/'
