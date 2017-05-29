@@ -43,6 +43,7 @@ class ImageTestCase(FlaskTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json_response['total'], 1)
         self.assertEqual(len(json_response['images']), 1)
+        self.assertEqual(type(json_response['images'][0]['paths']), dict)
 
     def test_many(self):
         """
