@@ -24,7 +24,7 @@ def resize(iid):
     512x320     - 512x320 image
     1024x640    - 1024x640 image
     """
-    sizes = [(64, 64), (128, 128), (180, 0), (256, 0), (512, 320), (1024, 640)]
+    sizes = [(64, 64), (128, 128), (0, 180), (0, 256), (512, 320), (1024, 640)]
     m = Image.query.get(iid)
     path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'], m.basepath)
     img = PIL.Image.open(path)
