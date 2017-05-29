@@ -1,5 +1,6 @@
 import os
 import json
+import functools
 import requests
 from dateutil import parser
 import PIL.Image
@@ -8,6 +9,7 @@ from flask import current_app
 from . import celery
 from ..model import Image
 from images import create_celery_app
+from .resize import image_transpose_exif
 from .. import db
 
 
@@ -96,10 +98,13 @@ def extract(iid):
     path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'], m.basepath)
 
     img = PIL.Image.open(path)
+    dt, lon, lat = extract_exif(img)
+    img = image_transpose_exif(img)
+    # save out the transposed image so that we can correctly read the dims
+    img.save(path)
     width, height = img.size
     m.width = width
     m.height = height
-    dt, lon, lat = extract_exif(img)
     if dt is not None:
         m.created_at = dt
 

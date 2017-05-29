@@ -59,6 +59,11 @@ class TaskTestCase(FlaskTestCase):
         """ Test that images are rotated appropiately """
         self._post_images(n=1, fpath='test/images/tall.jpg')
         self.assertEqual(Image.query.count(), 1)
-        #img = PIL.Image()
-        fnames = os.listdir('image_uploads/Dan/1')
-        base = sorted(fnames, key=lambda x: len(x))[0]
+        im = Image.query.first()
+        img = PIL.Image.open(im.basepath)
+        self.assertLess(img.width, img.height)
+        self.assertEqual(img.width, im.width)
+        self.assertEqual(img.height, im.height)
+        img = PIL.Image.open(im.paths['180h'])
+        self.assertLess(img.width, img.height)
+        self.assertAlmostEqual(img.width/img.height, im.width/im.height, 2)
