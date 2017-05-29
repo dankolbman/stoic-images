@@ -15,6 +15,7 @@ api = Namespace('image', description='Image service')
 
 
 image_model = api.model('Image', {
+        'id': fields.Integer(description='Image id'),
         'trip_id': fields.Integer(description='Trip id'),
         'username': fields.String(description='username'),
         'basepath': fields.String(description='Location of the file'),
@@ -119,6 +120,30 @@ class ImageByTrip(Resource):
             abort(404, 'no images found for this user and trip')
         images = q.limit(size)
         return {'images': images, 'total': total}, 200
+
+
+@api.route('/<string:username>/<string:trip_id>/<int:id>')
+@api.doc(params={'username': 'username',
+                 'trip_id': 'numeric trip id',
+                 'id': 'the image id'})
+class ImageById(Resource):
+    @api.doc(responses={400: 'missing fields', 201: 'image created'})
+    def delete(self, username, trip_id, id):
+        """
+        Delete an image
+        """
+        # check the trip belongs to the authenticated user
+        allowed = belongs_to(username)
+        if allowed is not True:
+            return allowed
+        im = Image.query.get(id)
+        for path in im.paths.values():
+            os.remove(path)
+        basepath = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'],
+                                im.basepath)
+        os.remove(basepath)
+        db.session.delete(im)
+        db.session.commit()
 
 
 @api.route('/<string:username>')

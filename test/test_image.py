@@ -44,6 +44,25 @@ class ImageTestCase(FlaskTestCase):
         self.assertEqual(json_response['total'], 1)
         self.assertEqual(len(json_response['images']), 1)
         self.assertEqual(type(json_response['images'][0]['paths']), dict)
+        self.assertEqual(json_response['images'][0]['id'], 1)
+
+    def test_delete(self):
+        """
+        Test deleteing an image
+        """
+        self._post_images(n=1, username='Dan', trip_id=1)
+        self.assertEqual(Image.query.count(), 1)
+        response = self.client.delete(
+                    url_for('image_image_by_id',
+                            username='Dan', trip_id=1, id=1))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 7)
+        response = self.client.delete(
+                    url_for('image_image_by_id',
+                            username='Dan', trip_id=1, id=1),
+                    headers=self._api_headers(username='Dan'))
+        self.assertEqual(Image.query.count(), 0)
+        self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 0)
 
     def test_many(self):
         """
