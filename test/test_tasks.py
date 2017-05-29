@@ -50,3 +50,8 @@ class TaskTestCase(FlaskTestCase):
         self._post_images(n=1, fpath='test/images/wide.jpg')
         self.assertEqual(Image.query.count(), 2)
         self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 14)
+
+    def test_rotation(self):
+        """ Test that images are rotated appropiately """
+        self._post_images(n=1, fpath='test/images/tall.jpg')
+        self.assertEqual(Image.query.count(), 1)
