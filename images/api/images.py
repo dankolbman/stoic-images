@@ -85,7 +85,7 @@ class ImageByTrip(Resource):
         os.makedirs('/'.join(path.split('/')[:-1]), exist_ok=True)
         image.save(path)
 
-        img = Image(username=username, trip_id=trip_id, basepath=filepath)
+        img = Image(username=username, trip_id=trip_id, basepath=path)
         db.session.add(img)
         db.session.commit()
         # doing this now allows us to lose db session scope and call the task

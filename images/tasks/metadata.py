@@ -1,5 +1,7 @@
 import os
 import json
+import logging
+import functools
 import requests
 from dateutil import parser
 import PIL.Image
@@ -8,8 +10,11 @@ from flask import current_app
 from . import celery
 from ..model import Image
 from images import create_celery_app
+from .resize import image_transpose_exif
 from .. import db
 
+from celery.utils.log import get_task_logger
+logger = get_task_logger(__name__)
 
 def parse_gps(exif):
     """
@@ -37,6 +42,9 @@ def interp_point(username, trip_id, dt):
                    username,
                    trip_id,
                    dt.isoformat()))
+    logger.info('getting ' + url)
+    logger.info(current_app.config)
+    logger.info(celery.config)
     try:
         resp = requests.get(url)
     except requests.exceptions.ConnectionError:
@@ -45,7 +53,9 @@ def interp_point(username, trip_id, dt):
     if resp.status_code is not 200:
         return None
 
+
     js_resp = resp.json()
+    logger.info(js_resp)
     return js_resp['point']['geometry']['coordinates']
 
 
@@ -96,10 +106,14 @@ def extract(iid):
     path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'], m.basepath)
 
     img = PIL.Image.open(path)
+    dt, lon, lat = extract_exif(img)
+    logger.info(' dt lon lat %s %s %s', dt, lon, lat)
+    img = image_transpose_exif(img)
+    # save out the transposed image so that we can correctly read the dims
+    img.save(path)
     width, height = img.size
     m.width = width
     m.height = height
-    dt, lon, lat = extract_exif(img)
     if dt is not None:
         m.created_at = dt
 
@@ -111,6 +125,7 @@ def extract(iid):
     if lon is not None and lat is not None:
         m.lon = lon
         m.lat = lat
+    logger.info('m.lon m.lat %s %s',m.lon, m.lat)
     db.session.add(m)
     db.session.commit()
 

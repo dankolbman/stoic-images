@@ -1,4 +1,5 @@
 import os
+import PIL.Image
 from flask import url_for
 from unittest.mock import Mock, patch
 
@@ -45,6 +46,9 @@ class TaskTestCase(FlaskTestCase):
         self.assertIn('128x128', img.paths)
         self.assertIn('180h', img.paths)
         self.assertIn('256h', img.paths)
+        # check that the basepath and thumbnail paths have same directory
+        self.assertEqual(os.path.split(img.basepath)[0],
+                         os.path.split(img.paths['64x64'])[0])
         # should have the original plus the processed files
         self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 7)
         self._post_images(n=1, fpath='test/images/wide.jpg')
@@ -55,3 +59,11 @@ class TaskTestCase(FlaskTestCase):
         """ Test that images are rotated appropiately """
         self._post_images(n=1, fpath='test/images/tall.jpg')
         self.assertEqual(Image.query.count(), 1)
+        im = Image.query.first()
+        img = PIL.Image.open(im.basepath)
+        self.assertLess(img.width, img.height)
+        self.assertEqual(img.width, im.width)
+        self.assertEqual(img.height, im.height)
+        img = PIL.Image.open(im.paths['180h'])
+        self.assertLess(img.width, img.height)
+        self.assertAlmostEqual(img.width/img.height, im.width/im.height, 2)
