@@ -43,8 +43,8 @@ class TaskTestCase(FlaskTestCase):
         self.assertEqual(len(img.paths), 6)
         self.assertIn('64x64', img.paths)
         self.assertIn('128x128', img.paths)
-        self.assertIn('180w', img.paths)
-        self.assertIn('256w', img.paths)
+        self.assertIn('180h', img.paths)
+        self.assertIn('256h', img.paths)
         # should have the original plus the processed files
         self.assertEqual(len(os.listdir('image_uploads/Dan/1')), 7)
         self._post_images(n=1, fpath='test/images/wide.jpg')
