@@ -1,4 +1,5 @@
 import os
+import functools
 from flask import current_app
 from sqlalchemy.orm.attributes import flag_modified
 import PIL.Image
@@ -27,6 +28,7 @@ def resize(iid):
     m = Image.query.get(iid)
     path = os.path.join(current_app.config['IMAGE_UPLOAD_DIR'], m.basepath)
     img = PIL.Image.open(path)
+    img = image_transpose_exif(img)
 
     paths = {}
     for size in sizes:
@@ -55,6 +57,31 @@ def size_tag(size):
     elif size[0] and size[1]:
         dims = '{}x{}'.format(size[0], size[1])
     return dims + orient
+
+
+def image_transpose_exif(im):
+    """
+    Rotates the image according to the Orientation EXIF tag
+    From https://stackoverflow.com/a/30462851
+    """
+    exif_orientation_tag = 0x0112
+    exif_transpose_sequences = [
+        [],
+        [PIL.Image.FLIP_LEFT_RIGHT],
+        [PIL.Image.ROTATE_180],
+        [PIL.Image.FLIP_TOP_BOTTOM],
+        [PIL.Image.FLIP_LEFT_RIGHT, PIL.Image.ROTATE_90],
+        [PIL.Image.ROTATE_270],
+        [PIL.Image.FLIP_TOP_BOTTOM, PIL.Image.ROTATE_90],
+        [PIL.Image.ROTATE_90],
+    ]
+
+    try:
+        seq = exif_transpose_sequences[im._getexif()[exif_orientation_tag] - 1]
+    except Exception:
+        return im
+    else:
+        return functools.reduce(lambda im, op: im.transpose(op), seq, im)
 
 
 def scale_crop(img, size, how='auto'):
