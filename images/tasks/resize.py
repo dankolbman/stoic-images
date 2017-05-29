@@ -106,9 +106,11 @@ def scale_crop(img, size, how='auto'):
         wider = img_ratio > ratio
 
     if how is 'width' or (how is 'crop' and not wider):
-        img = img.resize((size[0], int(size[0] * img.size[1] / img.size[0])))
+        img = img.resize((size[0], int(size[0] * img.size[1] / img.size[0])),
+                         PIL.Image.BICUBIC)
     elif how is 'height'or (how is 'crop' and wider):
-        img = img.resize((int(size[1] * img.size[0] / img.size[1]), size[1]))
+        img = img.resize((int(size[1] * img.size[0] / img.size[1]), size[1]),
+                         PIL.Image.BICUBIC)
     if how is 'crop':
         if wider:
             box = (round((img.size[0] - size[0]) / 2), 0,
