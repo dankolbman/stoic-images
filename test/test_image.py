@@ -17,6 +17,10 @@ class ImageTestCase(FlaskTestCase):
         response = self.client.get(url_for('image_status'))
         json_response = json.loads(response.data.decode('utf-8'))
         self.assertEqual(json_response['status'], 200)
+        response = self.client.get(url_for('status'))
+        json_response = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(json_response['status'], 200)
+        self.assertEqual(len(json_response['version']), 7)
 
     def test_upload(self):
         """

@@ -1,7 +1,8 @@
 import os
+import subprocess
 from celery import Celery
 from datetime import datetime
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt import JWT, _default_jwt_payload_handler
 from config import config
@@ -56,5 +57,13 @@ def create_app(config_name):
     from .api import api
     api.init_app(app)
     jwt = JWT(app, authenticate, identity)
+
+    @app.route('/status')
+    def status():
+        return jsonify({
+            "version": (subprocess.check_output(
+                        ['git', 'rev-parse', '--short', 'HEAD'])
+                        .decode('utf-8').strip()),
+            "status": 200})
 
     return app
