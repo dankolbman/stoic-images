@@ -18,7 +18,8 @@ class Config:
                                       os.path.join(basedir, 'image_uploads'))
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
     ALLOWED_IMAGES = ['jpg', 'jpeg', 'png', 'gif' ]
-    GEO_URL = 'http://geo/'
+    GEO_URL = os.environ.get('GEO_URL',
+                              'http://geo')
 
     @staticmethod
     def init_app(app):
