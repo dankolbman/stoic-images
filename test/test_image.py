@@ -102,6 +102,53 @@ class ImageTestCase(FlaskTestCase):
         self.assertEqual(jsonr['total'], 12)
         self.assertEqual(len(jsonr['images']), 10)
 
+    def test_ordering(self):
+        """
+        Test that images are returned with newest first
+        """
+        self._post_images(n=1, username='dan', trip_id=1)
+        self._post_images(n=2, username='dan', trip_id=2)
+        self._post_images(n=5, username='bob', trip_id=4)
+        self._post_images(n=3, username='dan', trip_id=2)
+        self._post_images(n=7, username='bob', trip_id=3)
+
+        response = self.client.get('/image/dan/2')
+        json_resp = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(json_resp['total'], 5)
+        dts = [image['created_at'] for image in json_resp['images']]
+        self.assertTrue(all([dts[i] > dts[i+1] for i in range(len(dts)-1)]))
+
+        response = self.client.get('/image/dan')
+        json_resp = json.loads(response.data.decode('utf-8'))
+        dts = [image['created_at'] for image in json_resp['images']]
+        self.assertTrue(all([dts[i] > dts[i+1] for i in range(len(dts)-1)]))
+
+    def test_before_param(self):
+        """
+        Test using `before` param to select time ranges of images
+        """
+        self._post_images(n=1, username='dan', trip_id=1)
+        self._post_images(n=4, username='dan', trip_id=2)
+        now = datetime.utcnow().isoformat()
+        self._post_images(n=3, username='dan', trip_id=1)
+        self._post_images(n=2, username='dan', trip_id=3)
+
+        response = self.client.get('/image/dan/1')
+        json_resp = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(json_resp['total'], 4)
+
+        response = self.client.get('/image/dan/1?before={}'.format(now))
+        json_resp = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(json_resp['total'], 1)
+
+        response = self.client.get('/image/dan')
+        json_resp = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(json_resp['total'], 10)
+
+        response = self.client.get('/image/dan?before={}'.format(now))
+        json_resp = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(json_resp['total'], 5)
+
     def test_duplicate(self):
         """
         Test that duplicate uploads dont cause already exists error
