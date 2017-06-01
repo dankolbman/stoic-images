@@ -106,15 +106,15 @@ class ImageByTrip(Resource):
         """
         List images for a given trip
         """
-        epoch = datetime.fromtimestamp(0).isoformat()
-        start = request.args.get('start', epoch, type=str)
-        start_dt = parser.parse(start)
+        now = datetime.utcnow().isoformat()
+        before = request.args.get('before', now, type=str)
+        before_dt = parser.parse(before)
         size = min(request.args.get('size', 10, type=int), 1000)
 
         q = (Image.query.filter_by(username=username)
                         .filter_by(trip_id=trip_id)
-                        .filter(Image.created_at > start_dt)
-                        .order_by(Image.created_at))
+                        .filter(Image.created_at < before_dt)
+                        .order_by(Image.created_at.desc()))
         total = q.count()
         if total == 0:
             abort(404, 'no images found for this user and trip')
@@ -155,14 +155,14 @@ class ImageByUser(Resource):
         """
         List images for a given user
         """
-        epoch = datetime.fromtimestamp(0).isoformat()
-        start = request.args.get('start', epoch, type=str)
-        start_dt = parser.parse(start)
+        now = datetime.utcnow().isoformat()
+        before = request.args.get('before', now, type=str)
+        before_dt = parser.parse(before)
         size = min(request.args.get('size', 10, type=int), 1000)
 
         q = (Image.query.filter_by(username=username)
-                        .filter(Image.created_at > start_dt)
-                        .order_by(Image.created_at))
+                        .filter(Image.created_at < before_dt)
+                        .order_by(Image.created_at.desc()))
         total = q.count()
         if total == 0:
             abort(404, 'no images found for this user')
