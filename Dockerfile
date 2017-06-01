@@ -7,4 +7,4 @@ RUN         pip install -r /app/requirements.txt
 ADD         . /app
 EXPOSE      5000
 CMD         ["./manage.py", "db init"]
-CMD         ["./manage.py", "runserver", "-h", "0.0.0.0"]
+CMD         ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
